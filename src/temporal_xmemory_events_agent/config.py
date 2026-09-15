@@ -90,14 +90,30 @@ def load_settings(path: Path | str = DEFAULT_CONFIG_PATH, overrides: Overrides |
         raise ConfigurationError(f"{config_path} is invalid:\n{exc}") from exc
 
 
+def _replace_instance_id_line(text: str, target: str, instance_id: str) -> str | None:
+    """Rewrite the `instance_id:` line under `xmemory.<target>` in place, keeping comments; None when absent."""
+    pattern = re.compile(rf"(^  {target}:\n(?:    .*\n)*?    instance_id:)[^\n#]*?([ \t]*#.*)?$", re.M)
+    new_text, count = pattern.subn(lambda m: f"{m.group(1)} {instance_id}{m.group(2) or ''}", text, count=1)
+    return new_text if count == 1 else None
+
+
 def write_instance_ids(path: Path | str, *, events: str | None = None, coordination: str | None = None) -> None:
-    """Record freshly created instance ids in the config file, touching nothing else."""
+    """Record freshly created instance ids in the config file, touching nothing else.
+
+    The lines are edited in place so the file keeps its comments and order; only when a target has no
+    `instance_id` line yet is the document re-serialised.
+    """
     config_path = Path(path)
-    raw = yaml.safe_load(config_path.read_text()) if config_path.exists() else {}
-    raw = raw or {}
-    section = raw.setdefault("xmemory", {})
-    if events is not None:
-        section.setdefault("events", {})["instance_id"] = events
-    if coordination is not None:
-        section.setdefault("coordination", {})["instance_id"] = coordination
-    config_path.write_text(yaml.safe_dump(raw, sort_keys=False))
+    text = config_path.read_text() if config_path.exists() else ""
+    wanted = {"events": events, "coordination": coordination}
+    for target, instance_id in wanted.items():
+        if instance_id is None:
+            continue
+        edited = _replace_instance_id_line(text, target, instance_id)
+        if edited is not None:
+            text = edited
+            continue
+        raw = yaml.safe_load(text) or {}
+        raw.setdefault("xmemory", {}).setdefault(target, {})["instance_id"] = instance_id
+        text = yaml.safe_dump(raw, sort_keys=False)
+    config_path.write_text(text)

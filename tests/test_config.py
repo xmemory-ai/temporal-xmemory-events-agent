@@ -109,3 +109,20 @@ def test_dotenv_sets_only_missing_variables(tmp_path: Path, monkeypatch: pytest.
     assert os.environ["OPENAI_API_KEY"] == "sk-quoted"
     assert os.environ["ALREADY"] == "from-env"
     assert load_dotenv(tmp_path / "missing.env") == []
+
+
+def test_write_instance_ids_keeps_comments_and_order(tmp_path: Path) -> None:
+    path = tmp_path / "config.yml"
+    path.write_text(
+        '# top comment\nxmemory:\n  events:\n    url: https://x.example   # keep me\n    instance_id: ""   # filled later\n'
+        "  coordination:\n    instance_id: old\nopenai: {model: m}\n"
+    )
+    write_instance_ids(path, events="ev-9", coordination="co-9")
+    text = path.read_text()
+    assert "# top comment" in text and "# keep me" in text and "# filled later" in text
+    assert "    instance_id: ev-9   # filled later" in text
+    assert "    instance_id: co-9" in text
+    settings = load_settings(path)
+    assert settings.xmemory.events.instance_id == "ev-9"
+    assert settings.xmemory.coordination.instance_id == "co-9"
+    assert settings.openai.model == "m"
