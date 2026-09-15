@@ -19,6 +19,9 @@ from temporal_xmemory_events_agent.errors import ConfigurationError
 from temporal_xmemory_events_agent.memory import admin
 from temporal_xmemory_events_agent.memory.schemas import DEFAULT_SCHEMA_DIR, load_schema
 from temporal_xmemory_events_agent.memory.targets import resolve_target
+from temporal_xmemory_events_agent.memory.queries import UNPROCESSED_EVENTS
+from temporal_xmemory_events_agent.memory.xresponse import event_rows
+from temporal_xmemory_events_agent.worker import run_worker
 from temporal_xmemory_events_agent.openai_models import verify_model
 
 logger = logging.getLogger(__name__)
@@ -80,6 +83,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--deep", action="store_true", help="deep extraction (slower, more thorough)")
     p.add_argument("text")
 
+    p = sub.add_parser("worker", help="run the Temporal worker (workflows, activities, both memory plugins)")
+    _add_common_options(p)
+
+    p = sub.add_parser("queue", help="list the unprocessed events, with the read the workflow itself uses")
+    _add_common_options(p)
+
     p = sub.add_parser("ask", help="ask the events memory a question")
     _add_common_options(p)
     p.add_argument("question")
@@ -132,6 +141,15 @@ async def cmd_remember(ns: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_queue(ns: argparse.Namespace) -> int:
+    settings = _settings(ns)
+    rows = event_rows(await admin.read_rows(_target(settings, "events"), UNPROCESSED_EVENTS))
+    for row in rows:
+        print(f"{row.name} | {row.website} | discovered {row.discovered_at} | {row.discovery_note}")
+    print(f"{len(rows)} unprocessed event(s)")
+    return 0
+
+
 async def cmd_ask(ns: argparse.Namespace, target_name: str) -> int:
     settings = _settings(ns)
     print(await admin.read_answer(_target(settings, target_name), ns.question))
@@ -147,6 +165,11 @@ async def _main_impl(argv: list[str] | None) -> int:
         return await cmd_seed_board(ns)
     if ns.command == "remember":
         return await cmd_remember(ns)
+    if ns.command == "worker":
+        await run_worker(_settings(ns))
+        return 0
+    if ns.command == "queue":
+        return await cmd_queue(ns)
     if ns.command == "ask":
         return await cmd_ask(ns, "events")
     if ns.command == "board":

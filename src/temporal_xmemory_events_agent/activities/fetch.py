@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 import httpx
 from temporalio import activity
 
+from temporal_xmemory_events_agent.activities.names import ACTIVITY_FETCH_URL
 from temporal_xmemory_events_agent.dto.fetch import FetchRequest, FetchResult, FetchStatus
 from temporal_xmemory_events_agent.dto.settings import ScoutSettings
 from temporal_xmemory_events_agent.web.cleaner import clean, window
@@ -21,7 +22,6 @@ from temporal_xmemory_events_agent.web.robots import RobotsCache
 
 logger = logging.getLogger(__name__)
 
-ACTIVITY_FETCH_URL = "scout_fetch_url"
 FETCH_TIMEOUT_SECONDS = 25
 MAX_BODY_BYTES = 3_000_000
 

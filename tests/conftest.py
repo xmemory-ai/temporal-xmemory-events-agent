@@ -9,10 +9,11 @@ import os
 import uuid
 from collections.abc import AsyncIterator
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
-from temporalio.testing import ActivityEnvironment
+from temporalio.testing import ActivityEnvironment, WorkflowEnvironment
 
 from temporal_xmemory_events_agent.base_models import FrozenTightBaseModel
 from temporal_xmemory_events_agent.dto.settings import MemoryTargetSettings
@@ -51,6 +52,17 @@ async def memory_targets(request: pytest.FixtureRequest) -> AsyncIterator[Memory
         if not request.config.getoption("--keep-instances"):
             for target in (targets.events, targets.coordination):
                 await admin.delete_instance(target, target.instance_id)
+
+
+@pytest_asyncio.fixture(scope="session")
+async def temporal_env() -> AsyncIterator[WorkflowEnvironment]:
+    """A real local Temporal dev server (real time; the stages poll real memory writes)."""
+    existing = Path.home() / ".temporalio" / "bin" / "temporal"
+    env = await WorkflowEnvironment.start_local(dev_server_existing_path=str(existing) if existing.exists() else None)
+    try:
+        yield env
+    finally:
+        await env.shutdown()
 
 
 @pytest.fixture

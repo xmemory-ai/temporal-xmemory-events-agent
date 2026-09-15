@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     # `OpenAIAgentsPlugin`, `@function_tool` tools inside workflows and the scripted `TestModel` are the floor.
-    "temporalio[openai-agents]>=1.30,<2",
+    # The openai-agents integration imports temporalio.contrib.opentelemetry at import time, hence both extras.
+    "temporalio[openai-agents,opentelemetry]>=1.30,<2",
     # Serves the events instance: durable reads and writes as activities.
     "xmemory-temporal>=1.0.0",
     # Direct client for the coordination instance and for instance administration.

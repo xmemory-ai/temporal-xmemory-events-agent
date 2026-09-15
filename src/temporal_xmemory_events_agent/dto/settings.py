@@ -51,6 +51,7 @@ class ScoutSettings(TightBaseModel):
     user_agent: str = "temporal-xmemory-events-agent/0.1 (+https://xmemory.ai)"
     stage_run_timeout_minutes: int = 120
     model_call_timeout_seconds: int = 300
+    openai_model: str = Field(default="", description="Filled from openai.model when a stage is started")
 
 
 class Settings(TightBaseModel):

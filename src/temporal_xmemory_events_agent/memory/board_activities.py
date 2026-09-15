@@ -13,15 +13,13 @@ from xmemory import AsyncInstanceAPI, AsyncXmemoryClient, ExtractionLogic, ReadM
 from xmemory_temporal import to_application_error
 from xmemory_temporal.config import client_timeout_seconds
 
+from temporal_xmemory_events_agent.activities.names import ACTIVITY_BOARD_READ, ACTIVITY_BOARD_WRITE
 from temporal_xmemory_events_agent.dto.board import BoardReadInput, BoardReadOutput, BoardWriteInput, BoardWriteOutput
 from temporal_xmemory_events_agent.dto.targets import MemoryTarget
 from temporal_xmemory_events_agent.memory.targets import require_instance_id, resolve_api_key
 from temporal_xmemory_events_agent.memory.xresponse import summarize_changes
 
 logger = logging.getLogger(__name__)
-
-ACTIVITY_BOARD_READ = "board_read"
-ACTIVITY_BOARD_WRITE = "board_write"
 
 
 class BoardActivities:
