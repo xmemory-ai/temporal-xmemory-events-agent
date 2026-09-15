@@ -9,6 +9,7 @@ dist/
 build/
 
 # Local state and scratch (never tracked)
+temporal.db*
 config.yml
 .env
 .logs/

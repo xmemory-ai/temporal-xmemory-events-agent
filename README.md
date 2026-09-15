@@ -101,11 +101,13 @@ uv run temporal-xmemory-events-agent remember --target events "Alexander Gusak a
 
 ### 6. Temporal dev server (terminal 1)
 
-The UI is at http://localhost:8233. The dev server keeps state in memory, so after a restart run `start` again.
+The UI is at http://localhost:8233. By default the dev server keeps its state in memory, so a restart forgets the entity workflow and you run `start` again afterwards. For durable runs give it a database file: workflow histories then survive server restarts, the entity keeps its cadence, cycle counter and pending instructions, and a worker that comes back simply continues the in-flight cycle.
 
 ```bash
-temporal server start-dev
+temporal server start-dev --db-filename temporal.db
 ```
+
+`temporal.db` and its sidecar files are gitignored. Delete the file to start from a clean slate.
 
 ### 7. Worker (terminal 2)
 
