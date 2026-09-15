@@ -16,6 +16,9 @@ from .conftest import MemoryTargets, unique
 from .fakes import RecordingModel, final_json, tool_call
 from .stage_harness import scheduled_activity_names, stage_worker, make_settings
 
+# Every test here talks to a real xmemory backend through the session's throwaway instances.
+pytestmark = pytest.mark.memory
+
 
 @pytest.mark.parametrize("forced_replay", [False, True], ids=["cached", "forced-replay"])
 async def test_discovery_writes_a_new_event_and_a_run_line(

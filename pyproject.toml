@@ -61,6 +61,7 @@ asyncio_default_fixture_loop_scope = "session"
 cache_dir = ".pytest_cache"
 testpaths = ["tests"]
 markers = [
+    "memory: needs XMEM_API_KEY; runs workflows and activities against real xmemory instances created for the session",
     "live: needs OPENAI_API_KEY and a real xmemory backend; runs a real model against the real web",
 ]
 

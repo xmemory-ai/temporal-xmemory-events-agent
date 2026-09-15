@@ -1,5 +1,6 @@
 """The coordination-board activities against the real backend."""
 
+import pytest
 from temporalio.testing import ActivityEnvironment
 
 from temporal_xmemory_events_agent.dto.board import BoardReadInput, BoardWriteInput
@@ -7,6 +8,9 @@ from temporal_xmemory_events_agent.memory.board_activities import BoardActivitie
 from temporal_xmemory_events_agent.memory.xresponse import parse_objects
 
 from .conftest import MemoryTargets, unique
+
+# Every test here talks to a real xmemory backend through the session's throwaway instances.
+pytestmark = pytest.mark.memory
 
 
 async def test_board_write_then_read_round_trip(

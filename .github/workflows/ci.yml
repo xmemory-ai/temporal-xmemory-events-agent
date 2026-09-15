@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Install (locked)
+        run: uv sync --dev
+      - name: Lint
+        run: uv run ruff check src tests
+      - name: Format check
+        run: uv run ruff format --check src tests
+      - name: Type check
+        run: uv run pyright src tests
+      - name: Unit tests (no credentials, no Temporal server)
+        run: uv run pytest -m "not live and not memory"
+
+  memory:
+    # Real xmemory backend: creates throwaway instances from the schemas and deletes them. Runs only where the
+    # XMEM_API_KEY secret is configured (a staging key is recommended; the tests never touch configured instances).
+    name: Memory-backed tests
+    needs: check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: memory-backed-tests
+      cancel-in-progress: false
+    env:
+      XMEM_API_KEY: ${{ secrets.XMEM_API_KEY }}
+      XMEM_API_URL: ${{ vars.XMEM_API_URL }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - name: Install (locked)
+        run: uv sync --dev
+      - name: Memory-backed tests (downloads the Temporal dev server on first use)
+        if: env.XMEM_API_KEY != ''
+        run: uv run pytest -m memory
+      - name: Skipped
+        if: env.XMEM_API_KEY == ''
+        run: echo "XMEM_API_KEY is not configured; memory-backed tests were not run."

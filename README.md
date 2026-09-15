@@ -180,20 +180,18 @@ The agents never emit schema JSON. They write prose and xmemory extracts the rec
 
 ## Tests
 
-```bash
-uv run ruff check src tests
-uv run ruff format --check src tests
-uv run pyright src tests
-uv run pytest -m "not live"
-```
-
-There is no fake xmemory. Unit tests (cleaner, robots, fetch activity, parsing, briefs, config, schema structure) need no backend. Memory-backed tests need `XMEM_API_KEY` exported (pytest does not read `.env`) and `XMEM_API_URL` unless the default server is meant: a session fixture creates throwaway instances from the two schemas, the tests run the real activities and workflows against them with a scripted model and fixture-backed web pages, and the instances are deleted afterwards (`--keep-instances` keeps them). Deep writes take tens of seconds, so that tier runs in minutes.
-
-The `live` test additionally needs `OPENAI_API_KEY` and `OPENAI_MODEL`, runs a real model against the real web on throwaway instances, and costs money:
+Three tiers, selected by pytest markers:
 
 ```bash
-OPENAI_MODEL=gpt-5.4-mini uv run pytest -m live
+uv run ruff check src tests && uv run ruff format --check src tests && uv run pyright src tests
+uv run pytest -m "not live and not memory"       # unit tests: no credentials, no Temporal server
+uv run pytest -m memory                          # real xmemory instances, scripted model, local dev server
+OPENAI_MODEL=gpt-5.4-mini uv run pytest -m live  # real model against the real web; costs money
 ```
+
+There is no fake xmemory. The unit tier (cleaner, robots, fetch activity, parsing, briefs, config, schema structure) needs nothing. The `memory` tier needs `XMEM_API_KEY` exported (pytest does not read `.env`) and `XMEM_API_URL` unless the default server is meant: a session fixture creates throwaway instances from the two schemas, the tests run the real activities and workflows against them on a local Temporal dev server with a scripted model and fixture-backed web pages, and the instances are deleted afterwards (`--keep-instances` keeps them). Deep writes take tens of seconds, so that tier runs in about fifteen minutes. The `live` test additionally needs `OPENAI_API_KEY` and `OPENAI_MODEL`.
+
+CI (`.github/workflows/ci.yml`) runs the gates and the unit tier on every push and pull request, and the `memory` tier on pushes to `main` when the repository has an `XMEM_API_KEY` secret (and, optionally, an `XMEM_API_URL` variable).
 
 ## Sharp edges
 

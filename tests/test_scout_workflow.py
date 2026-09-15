@@ -1,5 +1,6 @@
 """The entity workflow on a real worker: cycles, signals, query, continue-as-new, failure isolation."""
 
+import pytest
 import asyncio
 import uuid
 
@@ -15,6 +16,9 @@ from temporal_xmemory_events_agent.workflows.scout import EventScoutWorkflow
 from .conftest import MemoryTargets, unique
 from .fakes import RecordingModel, final_json, tool_call
 from .stage_harness import make_settings, stage_worker
+
+# Every test here talks to a real xmemory backend through the session's throwaway instances.
+pytestmark = pytest.mark.memory
 
 RUNS_QUERY = "Every Run record. Return all rows with every field."
 

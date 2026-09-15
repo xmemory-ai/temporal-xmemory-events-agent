@@ -1,5 +1,6 @@
 """The Processing stage on a real worker with a scripted model and real xmemory."""
 
+import pytest
 import uuid
 
 from temporalio.testing import WorkflowEnvironment
@@ -15,6 +16,9 @@ from temporal_xmemory_events_agent.workflows.processing import ProcessEventWorkf
 from .conftest import MemoryTargets, unique
 from .fakes import RecordingModel, final_json, tool_call
 from .stage_harness import stage_worker, make_settings
+
+# Every test here talks to a real xmemory backend through the session's throwaway instances.
+pytestmark = pytest.mark.memory
 
 
 async def _run(env: WorkflowEnvironment, targets: MemoryTargets, model: RecordingModel, event: EventRow, **overrides):

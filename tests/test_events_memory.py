@@ -1,5 +1,6 @@
 """The events instance on the real backend: the unprocessed queue and the attendance key."""
 
+import pytest
 from xmemory import XmemoryAPIError
 
 from temporal_xmemory_events_agent.memory import admin
@@ -8,6 +9,9 @@ from temporal_xmemory_events_agent.memory.xresponse import event_rows
 
 from . import memory_checks
 from .conftest import MemoryTargets, unique
+
+# Every test here talks to a real xmemory backend through the session's throwaway instances.
+pytestmark = pytest.mark.memory
 
 
 async def test_discovered_event_enters_the_queue_and_leaves_it_when_processed(memory_targets: MemoryTargets) -> None:
@@ -57,7 +61,7 @@ async def test_attendance_key_allows_one_event_per_person_per_day(memory_targets
     events = memory_targets.events
     await admin.write_text(
         events,
-        f"{person} is a member of the xmemory team, role tester. "
+        f"{person} is a member of the team, role tester. "
         f"Event Alpha {token} 2026 is a conference. Event Beta {token} 2026 is a conference. "
         f"{person} attends Alpha {token} 2026 on 2026-12-07.",
     )
