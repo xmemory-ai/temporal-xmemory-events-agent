@@ -2,7 +2,7 @@ xmd_version: v1
 title: AI Events
 description: >-
   Upcoming AI conferences, meetups, hackathons, summits, workshops and similar events, found and researched by
-  agents, plus which members of the xmemory team attend which event on which day. Writing conventions: every
+  agents, plus which members of the team attend which event on which day. Writing conventions: every
   sentence about an event names it in its canonical form, the short name plus the year (for example
   "NeurIPS 2026" or "AI Engineer World's Fair 2026"); dates are ISO 8601 (YYYY-MM-DD); one edition of an event
   is one Event record; statements are additive and never claim a list is complete. A newly found event has no
@@ -134,13 +134,13 @@ objects:
     primary_key: [name]
   TeamMember:
     description: >-
-      A member of the xmemory team, identified by full name as colleagues write it. Records are entered by
+      A member of the team that runs this memory, identified by full name as colleagues write it. Records are entered by
       people, never invented by agents.
     fields:
       name:
         type: string
         required: true
-        description: Full name, e.g. "Alexander Gusak".
+        description: Full name, e.g. "Jane Doe".
       role:
         type: string
         required: false

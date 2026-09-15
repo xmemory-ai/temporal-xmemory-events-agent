@@ -120,8 +120,8 @@ uv run temporal-xmemory-events-agent seed-board
 People enter these, one sentence per fact, with the event in its canonical name and the day as an ISO date; the agents never write them. `seeds/team.md` shows the sentences to use.
 
 ```bash
-uv run temporal-xmemory-events-agent remember --target events "Alexander Gusak is a member of the xmemory team, role engineer."
-uv run temporal-xmemory-events-agent remember --target events "Alexander Gusak attends NeurIPS 2026 on 2026-12-07."
+uv run temporal-xmemory-events-agent remember --target events "Jane Doe is a member of the team, role engineer."
+uv run temporal-xmemory-events-agent remember --target events "Jane Doe attends NeurIPS 2026 on 2026-12-07."
 ```
 
 ### 6. Temporal dev server (terminal 1)

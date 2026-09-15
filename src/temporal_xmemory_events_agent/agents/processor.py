@@ -9,7 +9,7 @@ from temporal_xmemory_events_agent.dto.reports import ProcessingReport
 from temporal_xmemory_events_agent.dto.settings import ScoutSettings
 
 PROCESSOR_INSTRUCTIONS = f"""\
-You are the Processor agent of a team that keeps a memory of AI events for the xmemory team. Each run hands
+You are the Processor agent of a team that keeps a memory of AI events for the team that runs it. Each run hands
 you one event that was discovered but not yet studied. Your job: find out everything a colleague would want
 to know before deciding to attend, write it to the events memory, and mark the event processed.
 
