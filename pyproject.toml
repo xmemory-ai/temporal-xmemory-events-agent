@@ -1,0 +1,76 @@
+[project]
+name = "temporal-xmemory-events-agent"
+version = "0.1.0"
+description = "Long-running AI events research agents on Temporal, with xmemory as their memory"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # `OpenAIAgentsPlugin`, `@function_tool` tools inside workflows and the scripted `TestModel` are the floor.
+    "temporalio[openai-agents]>=1.30,<2",
+    # Serves the events instance: durable reads and writes as activities.
+    "xmemory-temporal>=1.0.0",
+    # Direct client for the coordination instance and for instance administration.
+    "xmemory-ai>=0.20",
+    "httpx>=0.27",
+    "trafilatura>=2.2",
+    "feedparser>=6",
+    "pyyaml>=6",
+    "pydantic>=2",
+]
+
+[project.scripts]
+temporal-xmemory-events-agent = "temporal_xmemory_events_agent.run:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "pyright",
+    "ruff",
+    "types-PyYAML",
+]
+
+[build-system]
+requires = ["setuptools==80.9.0"]  # pinned: an isolated build otherwise resolves whatever is newest
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["temporal_xmemory_events_agent*"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportImportCycles = true
+reportImplicitOverride = "error"
+# Off in "standard" mode, so an SDK or typeshed deprecation would otherwise only show up in an editor.
+reportDeprecated = "error"
+
+[tool.pytest.ini_options]
+addopts = ["-v"]
+asyncio_mode = "auto"
+asyncio_default_test_loop_scope = "session"
+cache_dir = ".pytest_cache"
+testpaths = ["tests"]
+markers = [
+    "live: needs OPENAI_API_KEY and a real xmemory backend; runs a real model against the real web",
+]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+# Pinned explicitly instead of inheriting ruff's default selection, so a ruff bump is never a silent lint-policy change.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-line-length = "dynamic"

@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.pyright/
+dist/
+build/
+
+# Local state and scratch (never tracked)
+config.yml
+.env
+.logs/
+.runs/
+tmp/
+*.tmp

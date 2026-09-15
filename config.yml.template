@@ -1,0 +1,25 @@
+# Copy to config.yml (gitignored). Secrets never live here: each memory target names the ENV VAR holding its key.
+xmemory:
+  events:
+    url: https://api.stg.xmemory.ai        # omit to use XMEM_API_URL, then the library default
+    api_key_env: XMEM_EVENTS_API_KEY       # falls back to XMEM_API_KEY when this variable is unset
+    instance_id: ""                        # filled by `create-instances --write-config`
+  coordination:
+    url: https://api.stg.xmemory.ai
+    api_key_env: XMEM_COORD_API_KEY
+    instance_id: ""
+openai:
+  model: ""                                # verified against the OpenAI models list by `create-instances`
+temporal:
+  address: localhost:7233
+  task_queue: events-agent
+  workflow_id: events-scout
+scout:
+  cycle_interval_hours: 12
+  max_events_processed_per_cycle: 10
+  max_parallel_processing: 3
+  discovery_max_turns: 40
+  processor_max_turns: 40
+  max_fetches_per_stage: 25
+  fetch_chunk_chars: 6000
+  politeness_delay_seconds: 2
