@@ -1,11 +1,20 @@
 [project]
 name = "temporal-xmemory-events-agent"
 version = "0.1.0"
-description = "Long-running AI events research agents on Temporal, with xmemory as their memory"
+description = "Durable AI research agents on Temporal: OpenAI Agents SDK workers with xmemory as their shared memory"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
+keywords = ["temporal", "durable-execution", "ai-agents", "openai-agents", "agent-memory", "xmemory"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     # `OpenAIAgentsPlugin`, `@function_tool` tools inside workflows and the scripted `TestModel` are the floor.
     # The openai-agents integration imports temporalio.contrib.opentelemetry at import time, hence both extras.
@@ -20,6 +29,11 @@ dependencies = [
     "pyyaml>=6",
     "pydantic>=2",
 ]
+
+[project.urls]
+Homepage = "https://xmemory.ai"
+Repository = "https://github.com/xmemory-ai/temporal-xmemory-events-agent"
+Issues = "https://github.com/xmemory-ai/temporal-xmemory-events-agent/issues"
 
 [project.scripts]
 temporal-xmemory-events-agent = "temporal_xmemory_events_agent.run:main"
