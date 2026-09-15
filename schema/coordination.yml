@@ -1,0 +1,85 @@
+xmd_version: v1
+title: Events Agent Coordination
+description: >-
+  Working state of the AI events research agents: the sources they use and how good those turned out to be,
+  and a log of every run. Writing conventions: refer to a source by its slug (lowercase, hyphenated) and to a
+  run by its run id (e.g. "run-00042", "run-00042-discovery", "run-00042-process-neurips-2026"); date-times are
+  ISO 8601; statements are additive and never claim a list is complete.
+objects:
+  Source:
+    description: >-
+      A place to look for AI events: a website, a feed, a directory of conferences, or a search pattern.
+      Identified by a short lowercase hyphenated slug such as "ai-deadlines" or "meetup-search".
+    fields:
+      slug:
+        type: string
+        required: true
+        description: Lowercase hyphenated identifier, restated in every mention.
+      kind:
+        type: string
+        required: false
+        default: other
+        description: website = one site; feed = RSS/Atom/YAML data; directory = a list of many events; search_pattern = a query to run.
+        enum: [website, feed, directory, search_pattern, other]
+      locator:
+        type: string
+        required: false
+        description: URL, or the search query for a search pattern.
+      label:
+        type: string
+        required: false
+        description: Human-readable name.
+      quality:
+        type: string
+        required: false
+        default: unknown
+        description: How useful the source has been; good, mixed, poor, or unknown before it was tried.
+        enum: [unknown, good, mixed, poor]
+      last_checked_at:
+        type: string
+        required: false
+        description: ISO 8601 date-time of the last time an agent used it.
+      notes:
+        type: string
+        required: false
+        description: What an agent learned about using it (what works, what to skip).
+    primary_key: [slug]
+  Run:
+    description: >-
+      One run of an agent. A cycle run is "run-NNNNN"; its stages are "run-NNNNN-discovery" and
+      "run-NNNNN-process-<event-slug>".
+    fields:
+      run_id:
+        type: string
+        required: true
+        description: The run identifier, restated in every mention.
+      agent:
+        type: string
+        required: false
+        default: scout
+        description: scout = the cycle itself; discovery = the discovery agent; processor = the processing agent.
+        enum: [scout, discovery, processor]
+      started_at:
+        type: string
+        required: false
+        description: ISO 8601 date-time.
+      finished_at:
+        type: string
+        required: false
+        description: ISO 8601 date-time.
+      status:
+        type: string
+        required: false
+        default: running
+        description: running, completed, partial (stopped by a budget) or failed.
+        enum: [running, completed, partial, failed]
+      summary:
+        type: string
+        required: false
+        description: What the run did, in a few sentences.
+      notes:
+        type: string
+        required: false
+        description: Problems met, ideas for next time.
+    primary_key: [run_id]
+relations: {}

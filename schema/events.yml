@@ -1,0 +1,196 @@
+xmd_version: v1
+title: AI Events
+description: >-
+  Upcoming AI conferences, meetups, hackathons, summits, workshops and similar events, found and researched by
+  agents, plus which members of the xmemory team attend which event on which day. Writing conventions: every
+  sentence about an event names it in its canonical form, the short name plus the year (for example
+  "NeurIPS 2026" or "AI Engineer World's Fair 2026"); dates are ISO 8601 (YYYY-MM-DD); one edition of an event
+  is one Event record; statements are additive and never claim a list is complete. An event arrives as
+  "unprocessed" when it is discovered and becomes "processed" once its pages have been studied in detail.
+  Attendance is decided and recorded by people, never inferred by agents.
+objects:
+  Event:
+    description: >-
+      One edition of an AI-related event. Identified by its canonical name: the short name plus the year, e.g.
+      "NeurIPS 2026", "ICML 2027", "AI Engineer World's Fair 2026", "Berlin AI Meetup March 2026". Always write
+      the same canonical name for the same edition.
+    fields:
+      name:
+        type: string
+        required: true
+        description: Canonical name, short name plus year (e.g. "NeurIPS 2026"). Restated in every mention.
+      full_name:
+        type: string
+        required: false
+        description: The event's full official title.
+      website:
+        type: string
+        required: false
+        description: Official website URL of this edition.
+      discovered_at:
+        type: string
+        required: false
+        description: ISO 8601 date-time when the event was first found.
+      discovery_note:
+        type: string
+        required: false
+        description: One line on where and how the event was found.
+      processing_status:
+        type: string
+        required: false
+        default: unprocessed
+        description: >-
+          unprocessed = discovered, details not yet researched; processed = pages studied and details filled in;
+          failed = could not be processed (dead page, not an AI event); see processing_note.
+        enum: [unprocessed, processed, failed]
+      kind:
+        type: string
+        required: false
+        default: other
+        description: What sort of gathering it is.
+        enum: [conference, workshop, meetup, hackathon, summit, webinar, course, other]
+      format:
+        type: string
+        required: false
+        default: unknown
+        description: in_person, online, hybrid, or unknown when the pages do not say.
+        enum: [in_person, online, hybrid, unknown]
+      start_date:
+        type: string
+        required: false
+        description: First day, ISO 8601 (YYYY-MM-DD).
+      end_date:
+        type: string
+        required: false
+        description: Last day, ISO 8601 (YYYY-MM-DD); equal to start_date for one-day events.
+      city:
+        type: string
+        required: false
+        description: Host city, empty for online-only events.
+      country:
+        type: string
+        required: false
+        description: Host country.
+      venue:
+        type: string
+        required: false
+        description: Venue name and address when known.
+      registration_url:
+        type: string
+        required: false
+        description: Where to register or buy tickets.
+      cfp_deadline:
+        type: string
+        required: false
+        description: Call-for-papers or talk-proposal deadline, ISO 8601 (YYYY-MM-DD).
+      cfp_url:
+        type: string
+        required: false
+        description: Call-for-papers page.
+      status:
+        type: string
+        required: false
+        default: unknown
+        description: >-
+          announced = dates known, nothing open yet; cfp_open = accepting submissions; registration_open =
+          tickets on sale; past = already happened; cancelled; unknown when the pages do not say.
+        enum: [announced, cfp_open, registration_open, past, cancelled, unknown]
+      organizer:
+        type: string
+        required: false
+        description: Organizing body, company or community.
+      price_info:
+        type: string
+        required: false
+        description: Ticket prices or "free" as stated.
+      summary:
+        type: string
+        required: false
+        description: Two or three sentences on what the event is about and who it is for.
+      source_url:
+        type: string
+        required: false
+        description: The page the details were taken from.
+      processed_at:
+        type: string
+        required: false
+        description: ISO 8601 date-time when the details were researched.
+      processing_note:
+        type: string
+        required: false
+        description: Why processing failed, or what could not be found.
+    primary_key: [name]
+  Topic:
+    description: A subject an event covers, as a short lowercase tag such as "llm agents" or "computer vision".
+    fields:
+      name:
+        type: string
+        required: true
+        description: Lowercase tag.
+    primary_key: [name]
+  TeamMember:
+    description: >-
+      A member of the xmemory team, identified by full name as colleagues write it. Records are entered by
+      people, never invented by agents.
+    fields:
+      name:
+        type: string
+        required: true
+        description: Full name, e.g. "Alexander Gusak".
+      role:
+        type: string
+        required: false
+        description: Role in the team.
+      notes:
+        type: string
+        required: false
+        description: Interests or constraints relevant to attending events.
+    primary_key: [name]
+  CalendarDay:
+    description: >-
+      A calendar day, identified by its ISO 8601 date (YYYY-MM-DD). Exists so that a day can take part in the
+      attendance relation.
+    fields:
+      date:
+        type: string
+        required: true
+        description: ISO 8601 date, YYYY-MM-DD.
+      note:
+        type: string
+        required: false
+        description: Optional note about the day (public holiday, travel day).
+    primary_key: [date]
+relations:
+  event_topic:
+    description: Connect an Event to a Topic it covers, as stated on its pages.
+    objects:
+      event:
+        type: Event
+        on_delete: cascade
+        description: The event.
+      topic:
+        type: Topic
+        on_delete: cascade
+        description: A topic the event covers.
+    keys:
+      unique_pair: [event, topic]
+  attendance:
+    description: >-
+      A team member attends an event on a given day. Evidence is an explicit statement such as "<person>
+      attends <event> on <date>", "<person> is going to <event> on <date>" or "<person> registered for <event>
+      for <date>". A multi-day attendance is one link per day. Recorded by people, never by agents.
+    objects:
+      date:
+        type: CalendarDay
+        on_delete: nullify
+        description: The day of attendance.
+      event:
+        type: Event
+        on_delete: cascade
+        description: The event attended.
+      attendee:
+        type: TeamMember
+        on_delete: cascade
+        description: The team member attending.
+    keys:
+      one_event_per_person_per_day: [date, attendee]
