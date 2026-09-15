@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520" role="img" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" aria-label="One cycle: the entity workflow starts a Discovery child, reads the queue of not-yet-processed events from the events memory, and starts one Processor child per queued event; Discovery writes the events it finds (new ones queue, known ones update) and Processor writes details and marks them processed; both agents use the web; the entity opens and closes each run on the coordination memory.">
+      <rect x="0" y="0" width="1000" height="520" fill="#F4F7F9"></rect>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#16232E"></path>
+        </marker>
+      </defs>
+
+      <!-- the web -->
+      <rect x="880" y="50" width="100" height="380" rx="6" fill="none" stroke="#16232E" stroke-width="1.2" stroke-dasharray="5 4"></rect>
+      <text x="930" y="82" font-size="13" font-weight="600" text-anchor="middle" fill="#16232E">The web</text>
+      <text x="930" y="102" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.7">search results</text>
+      <text x="930" y="118" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.7">event pages</text>
+      <text x="930" y="134" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.7">feeds, directories</text>
+
+      <!-- entity -->
+      <rect x="30" y="180" width="180" height="80" rx="4" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"></rect>
+      <text x="120" y="207" font-size="13" font-weight="600" text-anchor="middle" fill="#16232E">Entity workflow</text>
+      <text x="120" y="226" font-size="12" text-anchor="middle" fill="#16232E" font-family="IBM Plex Mono, monospace">events-scout</text>
+      <text x="120" y="246" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.7">wakes every 12 h or on run-now</text>
+      <path d="M 96 180 C 86 146, 154 146, 144 180" fill="none" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></path>
+      <text x="120" y="140" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.8">continues as new after each cycle</text>
+
+      <!-- discovery -->
+      <rect x="330" y="50" width="180" height="86" rx="4" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"></rect>
+      <text x="420" y="79" font-size="13" font-weight="600" text-anchor="middle" fill="#16232E">Discovery agent</text>
+      <text x="420" y="99" font-size="11" text-anchor="middle" fill="#16232E" opacity="0.7">finds upcoming events</text>
+      <text x="420" y="122" font-size="10.5" text-anchor="middle" fill="#16232E" opacity="0.7">logs its run, rates sources</text>
+
+      <!-- processor (parallel copies) -->
+      <rect x="346" y="336" width="180" height="86" rx="4" fill="#FFFFFF" stroke="#16232E" stroke-width="1" opacity="0.45"></rect>
+      <rect x="338" y="328" width="180" height="86" rx="4" fill="#FFFFFF" stroke="#16232E" stroke-width="1" opacity="0.7"></rect>
+      <rect x="330" y="320" width="180" height="86" rx="4" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"></rect>
+      <text x="420" y="349" font-size="13" font-weight="600" text-anchor="middle" fill="#16232E">Processor agent</text>
+      <text x="420" y="369" font-size="11" text-anchor="middle" fill="#16232E" opacity="0.7">one per event, up to 3 at once</text>
+      <text x="420" y="392" font-size="10.5" text-anchor="middle" fill="#16232E" opacity="0.7">logs its run on the board</text>
+
+      <!-- events memory -->
+      <rect x="640" y="150" width="180" height="120" rx="4" fill="#DFF1F3" stroke="#0E7A8A" stroke-width="1.4"></rect>
+      <text x="730" y="178" font-size="13" font-weight="600" text-anchor="middle" fill="#16232E">Events memory</text>
+      <text x="730" y="199" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.8">Event · Topic · TeamMember</text>
+      <text x="730" y="216" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.8">CalendarDay</text>
+      <text x="730" y="240" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.8">attendance keyed on</text>
+      <text x="730" y="256" font-size="11.5" text-anchor="middle" fill="#16232E" font-family="IBM Plex Mono, monospace">(date, attendee)</text>
+
+      <!-- coordination memory -->
+      <rect x="30" y="450" width="790" height="52" rx="4" fill="#DFF1F3" stroke="#0E7A8A" stroke-width="1.4"></rect>
+      <text x="48" y="472" font-size="13" font-weight="600" fill="#16232E">Coordination memory</text>
+      <text x="48" y="490" font-size="11.5" fill="#16232E" opacity="0.8">Run logs (run-00042, run-00042-discovery, run-00042-process-neurips-2026) and Source notes, written by the entity and both agents</text>
+
+      <!-- arrows: entity -> agents, entity -> queue, entity -> board -->
+      <line x1="210" y1="203" x2="326" y2="104" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="232" y="138" font-size="11.5" fill="#16232E" opacity="0.85">child workflow</text>
+      <line x1="210" y1="240" x2="326" y2="348" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="222" y="318" font-size="11.5" fill="#16232E" opacity="0.85">one child per queued event</text>
+      <line x1="210" y1="220" x2="636" y2="214" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="420" y="207" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.85">reads the queue of waiting events</text>
+      <line x1="120" y1="260" x2="120" y2="446" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="130" y="356" font-size="11.5" fill="#16232E" opacity="0.85">opens and closes the run</text>
+
+      <!-- arrows: agents -> events memory -->
+      <line x1="510" y1="90" x2="636" y2="172" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="556" y="118" font-size="11.5" fill="#16232E" opacity="0.85">writes the events it finds;</text>
+      <text x="556" y="133" font-size="11.5" fill="#16232E" opacity="0.85">new ones queue, known ones update</text>
+      <line x1="510" y1="350" x2="636" y2="252" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="548" y="323" font-size="11.5" fill="#16232E" opacity="0.85">writes details,</text>
+      <text x="548" y="338" font-size="11.5" fill="#16232E" opacity="0.85">marks processed</text>
+
+      <!-- arrows: agents -> web -->
+      <line x1="510" y1="66" x2="876" y2="66" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="690" y="58" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.85">searches and fetches</text>
+      <line x1="528" y1="412" x2="876" y2="412" stroke="#16232E" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <text x="700" y="430" font-size="11.5" text-anchor="middle" fill="#16232E" opacity="0.85">crawls the event's pages</text>
+
+      <!-- run lines -->
+    </svg>
