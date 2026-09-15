@@ -16,6 +16,7 @@ from temporalio.worker import Worker
 from xmemory_temporal import XmemoryConfig, XmemoryPlugin
 
 from temporal_xmemory_events_agent.dto.settings import ScoutSettings
+from temporal_xmemory_events_agent.worker import WORKFLOW_RUNNER
 from temporal_xmemory_events_agent.memory.board_activities import BoardActivities
 from temporal_xmemory_events_agent.memory.targets import effective_api_key_env
 from temporal_xmemory_events_agent.workflows.discovery import DiscoveryWorkflow
@@ -66,6 +67,7 @@ async def stage_worker(
                 workflows=[EventScoutWorkflow, DiscoveryWorkflow, ProcessEventWorkflow],
                 activities=[fake_fetch_url, board.board_read, board.board_write],
                 plugins=[events_plugin],
+                workflow_runner=WORKFLOW_RUNNER,
                 **worker_kwargs,
             )
             # See worker.py: explicit run/shutdown/await instead of `async with worker`, which races the

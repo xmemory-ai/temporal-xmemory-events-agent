@@ -9,6 +9,7 @@ from temporalio.client import Client
 from temporalio.common import RetryPolicy
 from temporalio.contrib.openai_agents import ModelActivityParameters, OpenAIAgentsPlugin
 from temporalio.worker import Worker
+from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 from xmemory_temporal import XmemoryConfig, XmemoryPlugin
 
 from temporal_xmemory_events_agent.activities.fetch import ScoutActivities
@@ -22,6 +23,10 @@ from temporal_xmemory_events_agent.workflows.scout import EventScoutWorkflow
 logger = logging.getLogger(__name__)
 
 WORKFLOWS: list[type] = [EventScoutWorkflow, DiscoveryWorkflow, ProcessEventWorkflow]
+
+# pydantic pulls annotated_types in lazily inside workflow code; passing it through avoids a sandbox warning
+# on every workflow load. The OpenAI plugin adds its own passthroughs on top of this runner.
+WORKFLOW_RUNNER = SandboxedWorkflowRunner(SandboxRestrictions.default.with_passthrough_modules("annotated_types"))
 
 
 def stage_settings(settings: Settings) -> ScoutSettings:
@@ -71,6 +76,7 @@ async def run_worker(settings: Settings) -> None:
                 task_queue=settings.temporal.task_queue,
                 workflows=WORKFLOWS,
                 activities=[scout.fetch_url, board.board_read, board.board_write],
+                workflow_runner=WORKFLOW_RUNNER,
             )
             logger.info("worker running on task queue %r; Ctrl-C to drain and stop", settings.temporal.task_queue)
             # Not `async with worker`: that form cancels the worker's run task as soon as shutdown completes,
