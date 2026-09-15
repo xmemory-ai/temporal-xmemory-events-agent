@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="330" viewBox="0 0 1000 330" role="img" aria-label="Hand-off through shared state: Discovery writes an event without a processing status, the workflow reads the events whose status is empty or unprocessed, and Processor writes the details with the status processed or failed" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif">
+  <rect x="0" y="0" width="1000" height="330" fill="#F4F7F9"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#16232E"/></marker>
+  </defs>
+  <!-- column 1: Discovery writes -->
+  <text x="170" y="40" font-size="12" text-anchor="middle" fill="#5B6B78" letter-spacing="1">1 · DISCOVERY WRITES</text>
+  <rect x="40" y="56" width="260" height="176" rx="5" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"/>
+  <text x="60" y="86" font-size="14" font-weight="700" fill="#16232E">Event ExampleConf 2027</text>
+  <text x="60" y="112" font-size="12.5" fill="#16232E">website: example.test/exampleconf</text>
+  <text x="60" y="134" font-size="12.5" fill="#16232E">discovered_at: 2026-09-15</text>
+  <text x="60" y="156" font-size="12.5" fill="#16232E">discovery_note: found in a CFP feed</text>
+  <text x="60" y="190" font-size="12.5" fill="#9A5F14">processing_status: (not written)</text>
+  <text x="60" y="212" font-size="11" fill="#5B6B78">no lookup first: the name is the key</text>
+  <!-- arrow -->
+  <line x1="300" y1="144" x2="368" y2="144" stroke="#16232E" stroke-width="1.4" marker-end="url(#a)"/>
+  <!-- column 2: the queue -->
+  <text x="500" y="40" font-size="12" text-anchor="middle" fill="#5B6B78" letter-spacing="1">2 · THE WORKFLOW READS THE QUEUE</text>
+  <rect x="370" y="56" width="260" height="176" rx="5" fill="#DFF1F3" stroke="#0E7A8A" stroke-width="1.4"/>
+  <text x="390" y="86" font-size="14" font-weight="700" fill="#16232E">events memory (xmemory)</text>
+  <text x="390" y="112" font-size="12.5" fill="#16232E">one structured read per cycle:</text>
+  <text x="390" y="134" font-size="12.5" fill="#16232E" font-style="italic">“every Event whose status is</text>
+  <text x="390" y="152" font-size="12.5" fill="#16232E" font-style="italic">empty or unprocessed”</text>
+  <text x="390" y="190" font-size="12.5" fill="#0B5F6B">known events update, never duplicate</text>
+  <text x="390" y="212" font-size="11" fill="#5B6B78">no default: a re-mention keeps its status</text>
+  <line x1="630" y1="144" x2="698" y2="144" stroke="#16232E" stroke-width="1.4" marker-end="url(#a)"/>
+  <!-- column 3: Processor writes -->
+  <text x="830" y="40" font-size="12" text-anchor="middle" fill="#5B6B78" letter-spacing="1">3 · PROCESSOR WRITES</text>
+  <rect x="700" y="56" width="260" height="176" rx="5" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"/>
+  <text x="720" y="86" font-size="14" font-weight="700" fill="#16232E">Event ExampleConf 2027</text>
+  <text x="720" y="112" font-size="12.5" fill="#16232E">dates: 2027-03-03 to 2027-03-05</text>
+  <text x="720" y="134" font-size="12.5" fill="#16232E">city: Lisbon · cfp_deadline: 2026-11-15</text>
+  <text x="720" y="156" font-size="12.5" fill="#16232E">topics: ml systems, agents</text>
+  <text x="720" y="190" font-size="12.5" fill="#2E7D4F">processing_status: processed</text>
+  <text x="720" y="212" font-size="11" fill="#5B6B78">or failed, with a note saying why</text>
+  <!-- footer -->
+  <text x="500" y="278" font-size="13" text-anchor="middle" fill="#16232E">The agents never call each other. Each one writes prose; xmemory resolves the record by its canonical name.</text>
+  <text x="500" y="300" font-size="12" text-anchor="middle" fill="#5B6B78">Temporal runs each step as a child workflow whose id derives from the cycle, so a retry can never start a duplicate.</text>
+</svg>

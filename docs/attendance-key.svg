@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img" aria-label="The sentence 'Maya Chen attends ExampleConf 2027 on 2027-03-03' becomes one attendance link between a TeamMember, a CalendarDay and an Event; the uniqueness key covers the attendee and the date, not the event" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif">
+  <rect x="0" y="0" width="900" height="300" fill="#F4F7F9"/>
+  <text x="450" y="44" font-size="17" text-anchor="middle" fill="#16232E" font-style="italic">“Maya Chen attends ExampleConf 2027 on 2027-03-03.”</text>
+  <text x="450" y="70" font-size="12" text-anchor="middle" fill="#5B6B78">one sentence, one attendance link with three participants</text>
+  <!-- participants -->
+  <rect x="60" y="100" width="230" height="86" rx="5" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"/>
+  <text x="175" y="128" font-size="11" text-anchor="middle" fill="#5B6B78" letter-spacing="1">ATTENDEE · TEAMMEMBER</text>
+  <text x="175" y="160" font-size="18" font-weight="700" text-anchor="middle" fill="#16232E">Maya Chen</text>
+  <rect x="335" y="100" width="230" height="86" rx="5" fill="#FFFFFF" stroke="#16232E" stroke-width="1.4"/>
+  <text x="450" y="128" font-size="11" text-anchor="middle" fill="#5B6B78" letter-spacing="1">DATE · CALENDARDAY</text>
+  <text x="450" y="160" font-size="18" font-weight="700" text-anchor="middle" fill="#16232E">2027-03-03</text>
+  <rect x="610" y="100" width="230" height="86" rx="5" fill="#DFF1F3" stroke="#0E7A8A" stroke-width="1.4"/>
+  <text x="725" y="128" font-size="11" text-anchor="middle" fill="#0B5F6B" letter-spacing="1">EVENT · EVENT</text>
+  <text x="725" y="160" font-size="18" font-weight="700" text-anchor="middle" fill="#16232E">ExampleConf 2027</text>
+  <!-- key bracket over attendee + date -->
+  <path d="M 66 214 L 66 226 L 559 226 L 559 214" fill="none" stroke="#0E7A8A" stroke-width="1.6"/>
+  <line x1="312" y1="226" x2="312" y2="238" stroke="#0E7A8A" stroke-width="1.6"/>
+  <text x="312" y="258" font-size="13" text-anchor="middle" fill="#0B5F6B" font-weight="700">uniqueness key: one_event_per_person_per_day = [date, attendee]</text>
+  <text x="312" y="278" font-size="12" text-anchor="middle" fill="#5B6B78">the same person on the same day cannot be linked to a second event</text>
+  <text x="725" y="258" font-size="12" text-anchor="middle" fill="#5B6B78">outside the key: the event may</text>
+  <text x="725" y="276" font-size="12" text-anchor="middle" fill="#5B6B78">have many attendees and days</text>
+</svg>
