@@ -1,4 +1,7 @@
-"""The natural-language reads the workflow itself issues (agents phrase their own)."""
+"""The natural-language reads the workflow issues to xmemory (agents phrase their own).
+
+These are memory reads, not Temporal queries; the Temporal query is `EventScoutWorkflow.status`.
+"""
 
 # One object type per read: asking for several at once makes the text-to-SQL reader collapse to one table.
 # "Not processed" is an empty status (a newly found event) or the explicit value; both must land in the queue.

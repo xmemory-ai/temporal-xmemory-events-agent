@@ -1,4 +1,4 @@
-"""Deterministic identifiers derived from names (pure, usable in workflow code)."""
+"""Deterministic identifiers derived from names, used to build child workflow ids (pure, usable in workflow code)."""
 
 import re
 

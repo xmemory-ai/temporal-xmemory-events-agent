@@ -1,4 +1,4 @@
-"""The Processing stage: one agent run per unprocessed event."""
+"""The Processing stage: a child workflow per queued event, bounded by `run_timeout`; the parent survives its failure."""
 
 from temporalio import workflow
 

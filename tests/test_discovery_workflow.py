@@ -72,7 +72,7 @@ async def test_discovery_writes_a_new_event_and_a_run_line(
     assert "- ExampleConf 2027" in seen  # the fetched feed reached the model
     assert "stored in the events memory" in seen
 
-    # The write never mentioned a status: the schema default put the new event in the queue.
+    # The write never mentioned a status: an empty status is what puts a new event in the queue.
     queue = event_rows(await admin.read_rows(memory_targets.events, UNPROCESSED_EVENTS))
     mine = [r for r in queue if r.name == name]
     assert len(mine) == 1 and mine[0].website == website and mine[0].processing_status in ("", "unprocessed")

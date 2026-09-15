@@ -79,6 +79,8 @@ async def events_remember(ctx: RunContextWrapper[StageContext], text: str) -> st
     Args:
         text: The prose to remember, at most 8000 characters; split longer material into several calls.
     """
+    # `write_durable` is one non-idempotent enqueue activity plus idempotent status polls; the forced-replay test
+    # in tests/test_discovery_workflow.py asserts the enqueue is scheduled exactly once per call.
     if len(text) > MAX_REMEMBER_CHARS:
         return f"TOO LONG: {len(text)} characters; split the text into pieces of at most {MAX_REMEMBER_CHARS}."
     state = ctx.context

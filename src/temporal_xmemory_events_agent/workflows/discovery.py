@@ -1,4 +1,4 @@
-"""The Discovery stage: one agent run per cycle."""
+"""The Discovery stage: a child workflow per cycle that runs the Discovery agent, bounded by its own `run_timeout`."""
 
 from temporalio import workflow
 

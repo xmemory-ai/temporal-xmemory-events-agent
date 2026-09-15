@@ -33,6 +33,20 @@ QUEUE_READ_TIMEOUT = timedelta(seconds=120)
 
 @workflow.defn
 class EventScoutWorkflow:
+    """The entity workflow that owns the research cadence.
+
+    Temporal patterns in this class:
+    - Signals (`run_now`, `pause`, `resume`, `stop`, `instruct`) only mutate workflow state; the wait loop consumes
+      them through `wait_condition`, whose timeout is the cadence timer. The `status` query reports that state.
+    - State is initialised in `@workflow.init`, because signals delivered with the first workflow task run before
+      `run` starts.
+    - `continue_as_new` after every cycle carries the cycle counter and pending instructions and keeps history small.
+    - Child workflow ids are `{workflow_id}-{run_id}-{stage}`; `run_id` derives from the carried cycle counter, so a
+      retried workflow task or a replay can never start a duplicate child (the id is the idempotency key).
+    - Processing children fan out under an `asyncio.Semaphore`, which is deterministic inside workflow code.
+    - Every effect (memory reads and writes, model calls, web fetches) happens in an activity or a child.
+    """
+
     @workflow.init
     def __init__(self, input: ScoutInput) -> None:
         # State comes from the input here, not in `run`: Temporal delivers signals that arrive with the first

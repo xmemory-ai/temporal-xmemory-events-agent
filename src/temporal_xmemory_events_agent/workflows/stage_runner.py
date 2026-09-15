@@ -1,4 +1,10 @@
-"""Shared shape of the two stage workflows: build the context, run the agent, classify the outcome."""
+"""Shared shape of the two stage workflows: build the context, run the agent, classify the outcome.
+
+`Runner.run` executes inside the workflow: every model call is an activity through Temporal's OpenAI Agents SDK
+integration, so on replay the stored response is returned and the model is not invoked again. The agent's tools
+run in workflow code and do their I/O only through activities (web fetch, xmemory reads and writes), so a tool
+call is replayed from history exactly like any other activity result.
+"""
 
 from datetime import timedelta
 
@@ -15,8 +21,10 @@ with workflow.unsafe.imports_passed_through():
     from temporal_xmemory_events_agent.dto.settings import ScoutSettings
     from temporal_xmemory_events_agent.memory.board import BoardHandle
 
-# Content writes carry model-extracted keys, so a lost response must not be retried (a re-extraction can fork
-# the record); rate limits and daily quota are safe to retry because nothing was enqueued.
+# A content write is one `write_start` activity (the only non-idempotent step) followed by idempotent status polls.
+# Retry `write_start` only for failures where nothing was enqueued (rate limit, daily quota); a lost response after a
+# successful enqueue must not be retried, because xmemory extracts the record's key from the text and a second
+# extraction can fork the record.
 CONTENT_WRITE_RETRY = RetryPolicy(
     initial_interval=timedelta(seconds=10),
     maximum_interval=timedelta(minutes=2),

@@ -45,6 +45,8 @@ class ScoutActivities:
 
     @activity.defn(name=ACTIVITY_FETCH_URL)
     async def fetch_url(self, request: FetchRequest) -> FetchResult:
+        # A GET with no side effects: idempotent under Temporal retries, though the tool schedules it with one attempt
+        # and lets the model decide whether to try another page.
         url = request.url.strip()
         if not url.lower().startswith(("http://", "https://")):
             return FetchResult(url=url, status=FetchStatus.ERROR, error="only http(s) URLs can be fetched")
