@@ -8,9 +8,12 @@ Every subcommand accepts --config and per-target overrides (--events-url, --even
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
+
+from temporalio.common import WorkflowIDConflictPolicy
 
 from temporal_xmemory_events_agent.config import DEFAULT_CONFIG_PATH, Overrides, load_settings, write_instance_ids
 from temporal_xmemory_events_agent.dto.settings import Settings
@@ -21,7 +24,9 @@ from temporal_xmemory_events_agent.memory.schemas import DEFAULT_SCHEMA_DIR, loa
 from temporal_xmemory_events_agent.memory.targets import resolve_target
 from temporal_xmemory_events_agent.memory.queries import UNPROCESSED_EVENTS
 from temporal_xmemory_events_agent.memory.xresponse import event_rows
-from temporal_xmemory_events_agent.worker import run_worker
+from temporal_xmemory_events_agent.dto.scout import ScoutInput
+from temporal_xmemory_events_agent.worker import connect, run_worker, stage_settings
+from temporal_xmemory_events_agent.workflows.scout import EventScoutWorkflow
 from temporal_xmemory_events_agent.openai_models import verify_model
 
 logger = logging.getLogger(__name__)
@@ -89,6 +94,22 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("queue", help="list the unprocessed events, with the read the workflow itself uses")
     _add_common_options(p)
 
+    p = sub.add_parser("start", help="start the entity workflow (no-op when it is already running)")
+    _add_common_options(p)
+    p.add_argument("--paused", action="store_true", help="start paused; use run-now or resume later")
+    for name, help_text in (
+        ("run-now", "run a cycle now"),
+        ("pause", "pause the cadence after the current cycle"),
+        ("resume", "resume the cadence"),
+        ("stop", "stop after the current cycle"),
+        ("status", "show the entity's state"),
+    ):
+        p = sub.add_parser(name, help=help_text)
+        _add_common_options(p)
+    p = sub.add_parser("instruct", help="queue an operator instruction for the next cycle")
+    _add_common_options(p)
+    p.add_argument("text")
+
     p = sub.add_parser("ask", help="ask the events memory a question")
     _add_common_options(p)
     p.add_argument("question")
@@ -150,6 +171,41 @@ async def cmd_queue(ns: argparse.Namespace) -> int:
     return 0
 
 
+ENTITY_COMMANDS = ("start", "run-now", "pause", "resume", "stop", "status", "instruct")
+
+
+async def cmd_entity(ns: argparse.Namespace) -> int:
+    settings = _settings(ns)
+    client = await connect(settings)
+    workflow_id = settings.temporal.workflow_id
+    if ns.command == "start":
+        await client.start_workflow(
+            EventScoutWorkflow.run,
+            ScoutInput(settings=stage_settings(settings), paused=ns.paused),
+            id=workflow_id,
+            task_queue=settings.temporal.task_queue,
+            id_conflict_policy=WorkflowIDConflictPolicy.USE_EXISTING,
+        )
+        print(f"entity workflow {workflow_id} is running on task queue {settings.temporal.task_queue}")
+        return 0
+    handle = client.get_workflow_handle(workflow_id)
+    if ns.command == "status":
+        print(json.dumps((await handle.query(EventScoutWorkflow.status)).model_dump(), indent=2))
+        return 0
+    if ns.command == "instruct":
+        await handle.signal(EventScoutWorkflow.instruct, ns.text)
+    else:
+        signal = {
+            "run-now": EventScoutWorkflow.run_now,
+            "pause": EventScoutWorkflow.pause,
+            "resume": EventScoutWorkflow.resume,
+            "stop": EventScoutWorkflow.stop,
+        }[ns.command]
+        await handle.signal(signal)
+    print(f"sent {ns.command} to {workflow_id}")
+    return 0
+
+
 async def cmd_ask(ns: argparse.Namespace, target_name: str) -> int:
     settings = _settings(ns)
     print(await admin.read_answer(_target(settings, target_name), ns.question))
@@ -170,6 +226,8 @@ async def _main_impl(argv: list[str] | None) -> int:
         return 0
     if ns.command == "queue":
         return await cmd_queue(ns)
+    if ns.command in ENTITY_COMMANDS:
+        return await cmd_entity(ns)
     if ns.command == "ask":
         return await cmd_ask(ns, "events")
     if ns.command == "board":

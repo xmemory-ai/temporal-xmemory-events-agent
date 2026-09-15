@@ -54,6 +54,27 @@ async def memory_targets(request: pytest.FixtureRequest) -> AsyncIterator[Memory
                 await admin.delete_instance(target, target.instance_id)
 
 
+@pytest_asyncio.fixture
+async def fresh_memory_targets(request: pytest.FixtureRequest) -> AsyncIterator[MemoryTargets]:
+    """Pristine instances for one test, for tests whose assertions depend on the whole queue."""
+    if not os.environ.get(KEY_ENV):
+        pytest.skip(f"{KEY_ENV} is unset; memory-backed tests need a real xmemory backend")
+    tag = uuid.uuid4().hex[:8]
+    schema_dir = request.config.rootpath / "schema"
+    created: dict[str, MemoryTarget] = {}
+    for name in ("events", "coordination"):
+        base = resolve_target(name, MemoryTargetSettings())
+        instance_id = await admin.create_instance(base, load_schema(name, schema_dir), f"tmp-test-{tag}-{name}", None)
+        created[name] = base.model_copy(update={"instance_id": instance_id})
+    targets = MemoryTargets(events=created["events"], coordination=created["coordination"])
+    try:
+        yield targets
+    finally:
+        if not request.config.getoption("--keep-instances"):
+            for target in (targets.events, targets.coordination):
+                await admin.delete_instance(target, target.instance_id)
+
+
 @pytest_asyncio.fixture(scope="session")
 async def temporal_env() -> AsyncIterator[WorkflowEnvironment]:
     """A real local Temporal dev server (real time; the stages poll real memory writes)."""

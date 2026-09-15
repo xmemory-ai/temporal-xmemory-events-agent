@@ -17,10 +17,11 @@ from temporal_xmemory_events_agent.memory.board_activities import BoardActivitie
 from temporal_xmemory_events_agent.memory.targets import effective_api_key_env, require_instance_id, resolve_target
 from temporal_xmemory_events_agent.workflows.discovery import DiscoveryWorkflow
 from temporal_xmemory_events_agent.workflows.processing import ProcessEventWorkflow
+from temporal_xmemory_events_agent.workflows.scout import EventScoutWorkflow
 
 logger = logging.getLogger(__name__)
 
-WORKFLOWS: list[type] = [DiscoveryWorkflow, ProcessEventWorkflow]
+WORKFLOWS: list[type] = [EventScoutWorkflow, DiscoveryWorkflow, ProcessEventWorkflow]
 
 
 def stage_settings(settings: Settings) -> ScoutSettings:
