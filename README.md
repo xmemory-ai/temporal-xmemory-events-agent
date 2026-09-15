@@ -193,3 +193,10 @@ src/temporal_xmemory_events_agent/
   worker.py        client with both plugins, worker with all workflows and activities
 tests/             unit tests, real-backend tests with throwaway instances, the live test
 ```
+
+## Legal
+
+- Privacy policy: <https://xmemory.ai/privacy-policy.html>
+- Terms: <https://xmemory.ai/terms-and-conditions.html>
+
+**MIT licensed**, see [`LICENSE`](./LICENSE). The MIT grant covers only this example agent's own code. The xmemory service and its underlying technology, the backend, memory engine, schemas, extraction and reader models, and hosted infrastructure, remain **proprietary to xmemory Inc.** and are not licensed here; use of the service requires valid credentials and is governed by the Terms above. The supplemental scope, proprietary-service and trademark notices live in [`NOTICE`](./NOTICE), kept separate from `LICENSE` so the package classifies cleanly as MIT.

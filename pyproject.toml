@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Long-running AI events research agents on Temporal, with xmemory as their memory"
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
 dependencies = [
     # `OpenAIAgentsPlugin`, `@function_tool` tools inside workflows and the scripted `TestModel` are the floor.
     # The openai-agents integration imports temporalio.contrib.opentelemetry at import time, hence both extras.
