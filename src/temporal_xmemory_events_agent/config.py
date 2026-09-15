@@ -6,6 +6,8 @@ fails loudly at startup.
 """
 
 import logging
+import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -19,9 +21,37 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CONFIG_PATH = Path("config.yml")
 TEMPLATE_CONFIG_PATH = Path("config.yml.template")
+DEFAULT_DOTENV_PATH = Path(".env")
+_DOTENV_LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$")
 
 # A CLI override is a dotted path into the YAML document, e.g. "xmemory.events.url".
 Overrides = dict[str, Any]
+
+
+def load_dotenv(path: Path | str = DEFAULT_DOTENV_PATH) -> list[str]:
+    """Put the variables of a `.env` file into the environment without overriding what is already set.
+
+    Accepts `KEY=value` and `export KEY=value` lines, single or double quotes around the value, blank lines and
+    `#` comments. Returns the names that were set. Secrets stay in the file and the process environment only.
+    """
+    dotenv = Path(path)
+    if not dotenv.exists():
+        return []
+    names: list[str] = []
+    for raw in dotenv.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = _DOTENV_LINE.match(line)
+        if not match:
+            continue
+        name, value = match.group(1), match.group(2)
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        if name not in os.environ:
+            os.environ[name] = value
+            names.append(name)
+    return names
 
 
 def _apply_override(data: dict[str, Any], dotted: str, value: Any) -> None:

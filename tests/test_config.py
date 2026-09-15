@@ -1,10 +1,11 @@
 """Configuration loading and memory-target resolution."""
 
+import os
 from pathlib import Path
 
 import pytest
 
-from temporal_xmemory_events_agent.config import load_settings, write_instance_ids
+from temporal_xmemory_events_agent.config import load_dotenv, load_settings, write_instance_ids
 from temporal_xmemory_events_agent.dto.settings import DEFAULT_API_KEY_ENV, DEFAULT_API_URL, MemoryTargetSettings
 from temporal_xmemory_events_agent.errors import ConfigurationError
 from temporal_xmemory_events_agent.memory.targets import effective_api_key_env, resolve_api_key, resolve_target
@@ -93,3 +94,18 @@ def test_write_instance_ids_touches_only_ids(tmp_path: Path) -> None:
     assert settings.xmemory.events.url == "https://events.example"
     assert settings.xmemory.coordination.instance_id == "co-1"
     assert settings.openai.model == "test-model"
+
+
+def test_dotenv_sets_only_missing_variables(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(
+        "# comment\nexport XMEM_API_KEY=xmem_from_file\nOPENAI_API_KEY='sk-quoted'\nALREADY=from-file\nnot a line\n"
+    )
+    monkeypatch.delenv("XMEM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("ALREADY", "from-env")
+    assert load_dotenv(dotenv) == ["XMEM_API_KEY", "OPENAI_API_KEY"]
+    assert os.environ["XMEM_API_KEY"] == "xmem_from_file"
+    assert os.environ["OPENAI_API_KEY"] == "sk-quoted"
+    assert os.environ["ALREADY"] == "from-env"
+    assert load_dotenv(tmp_path / "missing.env") == []

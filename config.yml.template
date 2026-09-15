@@ -1,11 +1,12 @@
-# Copy to config.yml (gitignored). Secrets never live here: each memory target names the ENV VAR holding its key.
+# Copy to config.yml (gitignored). Secrets never live here: each memory target names the ENV VAR holding its
+# key, and the CLI loads a `.env` file from the repository root (e.g. `export XMEM_API_KEY=xmem_...`) if present.
 xmemory:
   events:
-    url: https://api.stg.xmemory.ai        # omit to use XMEM_API_URL, then the library default
+    url: https://api.xmemory.ai            # omit to use XMEM_API_URL, then the library default
     api_key_env: XMEM_EVENTS_API_KEY       # falls back to XMEM_API_KEY when this variable is unset
-    instance_id: ""                        # filled by `create-instances --write-config`
+    instance_id: ""                        # filled by `create-instances --write-config`, or paste an id from xmemcli
   coordination:
-    url: https://api.stg.xmemory.ai
+    url: https://api.xmemory.ai
     api_key_env: XMEM_COORD_API_KEY
     instance_id: ""
 openai:

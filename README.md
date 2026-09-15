@@ -31,16 +31,22 @@ uv sync --dev
 
 ## Configuration
 
-Copy `config.yml.template` to `config.yml` (gitignored). Secrets never live in the file: each memory target names the environment variable that holds its key.
+Copy `config.yml.template` to `config.yml` (gitignored). Secrets never live in the file: each memory target names the environment variable that holds its key, and the CLI loads a `.env` file from the repository root (also gitignored) into the environment before anything else, without overriding variables already set.
+
+```bash
+# .env
+export XMEM_API_KEY=xmem_...
+export OPENAI_API_KEY=sk-...
+```
 
 ```yaml
 xmemory:
   events:
-    url: https://api.stg.xmemory.ai      # unset -> XMEM_API_URL -> https://api.xmemory.ai
+    url: https://api.xmemory.ai          # unset -> XMEM_API_URL -> https://api.xmemory.ai
     api_key_env: XMEM_EVENTS_API_KEY     # unset or empty -> XMEM_API_KEY
-    instance_id: ""                       # filled by `create-instances --write-config`
+    instance_id: ""                       # filled by `create-instances --write-config`, or pasted from xmemcli
   coordination:
-    url: https://api.stg.xmemory.ai
+    url: https://api.xmemory.ai
     api_key_env: XMEM_COORD_API_KEY
     instance_id: ""
 openai:
@@ -53,14 +59,25 @@ The `scout` section sets the cadence and the budgets: cycle interval, events pro
 
 ## Setup
 
+Two ways to create the instances. With the [xmemory CLI](https://xmemory.ai/agent-onboarding-prompt.txt), which authenticates with the same `XMEM_API_KEY`, validates the XMD and prints connect instructions for agent surfaces:
+
 ```bash
-export OPENAI_API_KEY=...
-export XMEM_API_KEY=...                    # shared fallback for both instances
-uv run temporal-xmemory-events-agent create-instances --write-config
-uv run temporal-xmemory-events-agent seed-board
+xmemcli xmd validate schema/events.yml
+xmemcli instance create --name "AI Events" --schema-file schema/events.yml
+xmemcli instance create --name "Events Agent Coordination" --schema-file schema/coordination.yml
 ```
 
-`create-instances` creates both instances from `schema/events.yml` and `schema/coordination.yml`, with each schema's description as the instance description, and refuses to overwrite an id already in `config.yml` unless `--force`. `seed-board` writes `seeds/seed_board.md`, a starting list of sources for the Discovery agent, and can be re-run.
+then paste the two ids into `config.yml`. Or with this project's own command, which does the same through the client library and records the ids for you:
+
+```bash
+uv run temporal-xmemory-events-agent create-instances --write-config
+```
+
+Either way, each schema's description becomes the instance description, which is what other agents connected to the instance read. `create-instances` refuses to overwrite an id already in `config.yml` unless `--force`. Then seed the board, a starting list of sources for the Discovery agent (re-runnable):
+
+```bash
+uv run temporal-xmemory-events-agent seed-board
+```
 
 Team members and attendance are entered by people, never by the agents. `seeds/team.md` shows the sentences to use:
 
@@ -99,7 +116,7 @@ uv run pyright src tests
 uv run pytest -m "not live"
 ```
 
-There is no fake xmemory. Unit tests (cleaner, robots, fetch activity, parsing, briefs, config, schema structure) need no backend. Memory-backed tests need `XMEM_API_KEY` (and `XMEM_API_URL` unless the default server is meant): a session fixture creates throwaway instances from the two schemas, the tests run the real activities and workflows against them with a scripted model and fixture-backed web pages, and the instances are deleted afterwards (`--keep-instances` keeps them). Deep writes take tens of seconds, so that tier runs in minutes.
+There is no fake xmemory. Unit tests (cleaner, robots, fetch activity, parsing, briefs, config, schema structure) need no backend. Memory-backed tests need `XMEM_API_KEY` exported (pytest does not read `.env`) and `XMEM_API_URL` unless the default server is meant: a session fixture creates throwaway instances from the two schemas, the tests run the real activities and workflows against them with a scripted model and fixture-backed web pages, and the instances are deleted afterwards (`--keep-instances` keeps them). Deep writes take tens of seconds, so that tier runs in minutes.
 
 The `live` test additionally needs `OPENAI_API_KEY` and `OPENAI_MODEL`, runs a real model against the real web on throwaway instances, and costs money:
 

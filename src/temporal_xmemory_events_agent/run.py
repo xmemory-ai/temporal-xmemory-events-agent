@@ -15,7 +15,13 @@ from pathlib import Path
 
 from temporalio.common import WorkflowIDConflictPolicy
 
-from temporal_xmemory_events_agent.config import DEFAULT_CONFIG_PATH, Overrides, load_settings, write_instance_ids
+from temporal_xmemory_events_agent.config import (
+    DEFAULT_CONFIG_PATH,
+    Overrides,
+    load_dotenv,
+    load_settings,
+    write_instance_ids,
+)
 from temporal_xmemory_events_agent.dto.settings import Settings
 from temporal_xmemory_events_agent.dto.targets import MemoryTarget
 from temporal_xmemory_events_agent.errors import ConfigurationError
@@ -215,6 +221,9 @@ async def cmd_ask(ns: argparse.Namespace, target_name: str) -> int:
 async def _main_impl(argv: list[str] | None) -> int:
     ns = build_parser().parse_args(argv)
     logging.basicConfig(level=getattr(logging, ns.log_level), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    loaded = load_dotenv()
+    if loaded:
+        logger.info("loaded %s from .env", ", ".join(loaded))
     if ns.command == "create-instances":
         return await cmd_create_instances(ns)
     if ns.command == "seed-board":
