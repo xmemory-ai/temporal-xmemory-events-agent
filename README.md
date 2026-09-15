@@ -1,22 +1,47 @@
 # temporal-xmemory-events-agent
 
-Long-running agents on [Temporal](https://temporal.io) that research AI conferences, meetups and other events on the internet and keep everything they learn, and everything they are doing, in [xmemory](https://xmemory.ai).
+[![CI](https://github.com/xmemory-ai/temporal-xmemory-events-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/xmemory-ai/temporal-xmemory-events-agent/actions/workflows/ci.yml)
 
-## How it works
+Two AI agents that research AI conferences, meetups, hackathons and summits on the internet, month after month, and keep what they learn in a shared memory that people and other agents can query in plain language. They run on [Temporal](https://temporal.io), so a crashed or redeployed worker resumes in the middle of a cycle instead of starting over, and on [xmemory](https://xmemory.ai), so the knowledge outlives any single run.
 
-Two agents share the work through memory:
+## What it does
 
 - The **Discovery** agent searches the web and directories for upcoming AI events and writes each one to the events memory with its canonical name, website and a one-line discovery note. It never looks an event up first and never states a status: xmemory resolves records by name, so a known event is updated rather than duplicated, and a new one has no status yet, which is what queues it for processing.
-- The **Processor** agent takes one unprocessed event, crawls its pages, writes the details (dates, venue, call for papers, registration, prices, topics) and marks the event `processed`, or `failed` with a note.
+- The **Processor** agent takes one queued event, crawls its pages, writes the details (dates, venue, call for papers, registration, prices, topics) and marks the event `processed`, or `failed` with a note.
 
-Both agents run on the OpenAI Agents SDK. Every model call, web fetch and memory operation is a durable Temporal activity, so a crashed or redeployed worker resumes where it stopped. Inside a stage the model decides what to do; the only fixed structure is the cycle.
-
-Two xmemory instances hold the state, and both are written as plain prose that xmemory's extraction engine turns into records:
+Both agents are built on the OpenAI Agents SDK. Inside a stage the model decides what to search, fetch and write; the only fixed structure is the cycle around them. Two xmemory instances hold the state, both written as plain prose that xmemory's extraction engine turns into records:
 
 - `events`: `Event` (with its processing status: empty or `unprocessed` while waiting, then `processed` or `failed`), `Topic`, `TeamMember`, `CalendarDay`, and the `attendance` relation, which links a team member to an event on a day and is keyed on `(date, attendee)` so a person can attend only one event per day.
 - `coordination`: `Source` notes (which sources are good or poor) and `Run` logs for every cycle and stage.
 
-An always-alive `EventScoutWorkflow` entity wakes on a cadence or on demand and runs one cycle: open a `Run` on the board, run Discovery as a child workflow, read the unprocessed queue with one structured read, run one `ProcessEventWorkflow` child per event with bounded parallelism, close the `Run`, and continue as new so its history stays small. Signals: `run_now`, `instruct <text>` (queued into the next Discovery brief), `pause`, `resume`, `stop`. Query: `status`.
+Once it has run for a while you can ask things like "Which AI conferences in Europe have a CFP deadline in the next 90 days?" or "Who from the team attends what in December?" and get an answer from the records, not from a transcript.
+
+## Why Temporal and xmemory
+
+- **The work never finishes.** Discovery and processing repeat on a cadence for as long as the worker is up. Temporal keeps that loop alive as a single long-lived workflow and, when a worker crashes or is redeployed mid-cycle, continues from the last completed step: no model call is repeated, no page is fetched twice, no memory write is issued twice.
+- **Two agents, one memory.** The agents never call each other; the memory is the hand-off. xmemory turns each agent's prose into structured records keyed by the event's name, so a second mention updates a record instead of duplicating it, and a mention that says nothing about an event's status leaves that status alone. The next cycle, the next agent, or a person starts from what earlier runs learned.
+- **Steerable while it runs.** Signals tell the running entity to run a cycle now, pause, resume, stop, or take an operator instruction for the next discovery; a query reports where it stands. The Temporal UI shows every cycle, child workflow and activity.
+- **State where it belongs.** Temporal holds the cursor of the work in progress (cycle counter, pending instructions, next due time). xmemory holds what is known. The agents hold nothing.
+
+![One cycle: the entity starts Discovery, reads the queue of waiting events, starts one Processor per event; both agents write prose to the events memory and read the web; the entity opens and closes each run on the coordination memory](docs/architecture.svg)
+
+## How it uses Temporal
+
+- **Entity workflow.** `EventScoutWorkflow` in `src/temporal_xmemory_events_agent/workflows/scout.py` is one always-alive workflow per agent. Its state is initialised in `@workflow.init`, because signals delivered with the first workflow task run before `run` starts. After every cycle it calls `continue_as_new`, carrying the cycle counter, pending instructions and the next due time, so history never grows beyond one cycle.
+- **Cadence without polling.** The wait loop is `workflow.wait_condition(..., timeout=...)`: the timeout is the cadence timer, and the condition wakes on any signal. While paused only `run_now` or `stop` wake it.
+- **Signals and a query that the logic consumes.** `run_now`, `pause`, `resume`, `stop` and `instruct` only mutate workflow state; the wait loop and the next brief read that state. `status` is a query over the same state. The CLI's `run-now`, `instruct`, `pause`, `resume`, `stop` and `status` commands map to them one to one.
+- **Child workflows with deterministic ids.** Discovery (`workflows/discovery.py`) and each processing run (`workflows/processing.py`) are child workflows with ids `{workflow_id}-{run_id}-{stage}`, where `run_id` derives from the carried cycle counter. A retried workflow task or a replay therefore cannot start a duplicate child; the id is the idempotency key. Each child has its own `run_timeout`, processing children fan out under an `asyncio.Semaphore` (deterministic inside workflow code), and a failed child is recorded by the entity, never fatal to it.
+- **Model calls are activities.** Both agents run through Temporal's OpenAI Agents SDK integration (`OpenAIAgentsPlugin`, see `worker.py` and `workflows/stage_runner.py`): every model turn is an activity with a 5-minute timeout and a bounded retry policy, and on replay the stored response is returned rather than the model invoked again. The agents' tools run in workflow code and do their I/O only through activities.
+- **Memory operations are activities.** Events reads and writes go through the `xmemory-temporal` plugin: a durable write is one `write_start` activity, the only non-idempotent step, followed by idempotent status polls with `workflow.sleep` between them (`agents/tools.py`). The coordination board uses two small activities of its own (`memory/board_activities.py`, handle in `memory/board.py`). `tests/test_discovery_workflow.py` runs a stage with `max_cached_workflows=0`, forcing a replay after every task, and asserts that `write_start` is scheduled exactly once per remember.
+- **Timeouts and retries are explicit and asymmetric.** Content writes carry keys extracted from the text, so they retry only when nothing was enqueued (rate limit, quota) and never after a lost response (`workflows/stage_runner.py`); board writes carry literal keys and retry freely (`memory/board.py`); a page fetch gets one attempt and the model decides what to do with a failure (`agents/tools.py`, `activities/fetch.py`).
+- **Tests at three levels.** Unit tests need no credentials. Memory-backed tests run the real activities and workflows on a local Temporal dev server against real xmemory instances created and deleted per session, with a scripted model. A live test runs a real model against the real web. See Tests below.
+
+## Requirements and costs
+
+- Python 3.12+, [uv](https://docs.astral.sh/uv/), and the Temporal CLI for a local dev server (free; `temporal server start-dev`).
+- An **OpenAI API key**. Each cycle spends model turns (up to 40 per stage by default) and hosted web search calls; the default model in the template is `gpt-5.4-mini`. Budgets live in `config.yml`: cycle interval 12 hours, at most 10 events processed per cycle, 3 in parallel, 25 fetches per stage.
+- An **xmemory account and API key**, for two instances created from `schema/`. Each memory write is an extraction on your xmemory plan; deep writes take tens of seconds, so a cycle with several events takes minutes.
+- **There is no keyless demo.** Every run and the memory-backed tests need a real xmemory key; the model is real too, except in tests, where it is scripted. Only the unit tests (page cleaner, fetch activity, parsing, config, schema structure) run without any credentials.
 
 ## Step-by-step guide
 
