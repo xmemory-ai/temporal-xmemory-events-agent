@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>CFPs on Artificial Intelligence : Example</title>
+<item><title>ExampleConf 2027 : Third Example Conference on Machine Learning Systems</title>
+<link>http://example.test/cfp/1</link><description>Lisbon, Portugal, March 3-5 2027. Deadline Nov 15, 2026.</description>
+<pubDate>Mon, 01 Sep 2026 10:00:00 GMT</pubDate></item>
+<item><title>AgentsWorkshop 2027 : Workshop on Autonomous Agents</title>
+<link>http://example.test/cfp/2</link><description>&lt;p&gt;Co-located with ExampleConf 2027.&lt;/p&gt;</description>
+<pubDate>Tue, 02 Sep 2026 10:00:00 GMT</pubDate></item>
+</channel></rss>

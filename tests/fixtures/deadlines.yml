@@ -1,0 +1,14 @@
+- title: ExampleConf
+  year: 2027
+  id: exampleconf27
+  full_name: Third Example Conference on Machine Learning Systems
+  link: http://example.test/exampleconf/2027
+  deadlines:
+    - type: paper
+      label: Paper submission deadline
+      date: '2026-11-15 23:59:59'
+      timezone: AoE
+  start: 2027-03-03
+  end: 2027-03-05
+  city: Lisbon
+  country: Portugal
