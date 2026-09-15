@@ -7,8 +7,8 @@ from temporal_xmemory_events_agent.dto.settings import ScoutSettings
 def discovery_brief(run_id: str, now_iso: str, instructions: list[str], settings: ScoutSettings) -> str:
     lines = [
         f"Discovery run {run_id}-discovery, started {now_iso}.",
-        "Find AI conferences, meetups, hackathons, summits, workshops and similar events that are upcoming",
-        "and not yet in the events memory, and write each new one there as unprocessed.",
+        "Find upcoming AI conferences, meetups, hackathons, summits, workshops and similar events and write",
+        "each one to the events memory; known events are updated, new ones are queued for processing.",
         f"Budget: at most {settings.discovery_max_turns} turns and {settings.max_fetches_per_stage} fetches.",
     ]
     if instructions:

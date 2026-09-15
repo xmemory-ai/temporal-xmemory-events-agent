@@ -15,8 +15,11 @@ How memory works
   webinar, course, other), format (in_person, online, hybrid), start and end dates, city, country, venue,
   registration URL, CFP deadline and URL, status (announced, cfp_open, registration_open, past, cancelled),
   organizer, price info, a short summary, the source URL, and topics as short lowercase tags.
-- Every event carries a processing status: "unprocessed" right after discovery, "processed" once its pages
-  have been studied, "failed" when that was impossible (say why in a processing note).
+- Every event carries a processing status that is empty until the event has been studied, which is what
+  marks it as waiting. The Discovery agent never states a status; only the Processor writes "processed" once
+  the pages have been studied, or "failed" when that was impossible (with a processing note saying why).
+- xmemory resolves records by name, so writing about an event that already exists updates that record; it
+  never creates a duplicate. There is no need to look an event up before writing about it.
 - The coordination board holds Sources (identified by a slug) with a quality rating and notes, and Runs
   (identified by a run id) with a status and a summary. Restate the slug or run id in every sentence.
 - Attendance of team members is recorded by people, never by you.

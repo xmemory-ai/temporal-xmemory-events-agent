@@ -5,9 +5,11 @@ description: >-
   agents, plus which members of the xmemory team attend which event on which day. Writing conventions: every
   sentence about an event names it in its canonical form, the short name plus the year (for example
   "NeurIPS 2026" or "AI Engineer World's Fair 2026"); dates are ISO 8601 (YYYY-MM-DD); one edition of an event
-  is one Event record; statements are additive and never claim a list is complete. An event arrives as
-  "unprocessed" when it is discovered and becomes "processed" once its pages have been studied in detail.
-  Attendance is decided and recorded by people, never inferred by agents.
+  is one Event record; statements are additive and never claim a list is complete. A newly found event has no
+  processing status yet, which means it is waiting to be processed; the status becomes "processed" once its
+  pages have been studied, or "failed" when that was impossible. A mention of an event that does not state a
+  status leaves the stored status untouched. Attendance is decided and recorded by people, never inferred by
+  agents.
 objects:
   Event:
     description: >-
@@ -38,10 +40,12 @@ objects:
       processing_status:
         type: string
         required: false
-        default: unprocessed
         description: >-
-          unprocessed = discovered, details not yet researched; processed = pages studied and details filled in;
-          failed = could not be processed (dead page, not an AI event); see processing_note.
+          Whether the event's details have been researched. Empty (the state of a newly found event) or
+          unprocessed = waiting to be processed; processed = its pages were studied and the details filled in;
+          failed = it could not be processed (dead page, not an AI event), see processing_note. Fill this field
+          only when the text states a status; otherwise leave it empty so the stored value is kept. There is
+          deliberately no default: a default would be re-applied on every mention of the event.
         enum: [unprocessed, processed, failed]
       kind:
         type: string

@@ -6,14 +6,14 @@ Long-running agents on [Temporal](https://temporal.io) that research AI conferen
 
 Two agents share the work through memory:
 
-- The **Discovery** agent searches the web and directories for upcoming AI events, checks the events memory so it does not re-add known ones, and writes each new event there as `unprocessed` with its canonical name, website and a one-line discovery note.
+- The **Discovery** agent searches the web and directories for upcoming AI events and writes each one to the events memory with its canonical name, website and a one-line discovery note. It never looks an event up first and never states a status: xmemory resolves records by name, so a known event is updated rather than duplicated, and a new one has no status yet, which is what queues it for processing.
 - The **Processor** agent takes one unprocessed event, crawls its pages, writes the details (dates, venue, call for papers, registration, prices, topics) and marks the event `processed`, or `failed` with a note.
 
 Both agents run on the OpenAI Agents SDK. Every model call, web fetch and memory operation is a durable Temporal activity, so a crashed or redeployed worker resumes where it stopped. Inside a stage the model decides what to do; the only fixed structure is the cycle.
 
 Two xmemory instances hold the state, and both are written as plain prose that xmemory's extraction engine turns into records:
 
-- `events`: `Event` (with its processing status), `Topic`, `TeamMember`, `CalendarDay`, and the `attendance` relation, which links a team member to an event on a day and is keyed on `(date, attendee)` so a person can attend only one event per day.
+- `events`: `Event` (with its processing status: empty or `unprocessed` while waiting, then `processed` or `failed`), `Topic`, `TeamMember`, `CalendarDay`, and the `attendance` relation, which links a team member to an event on a day and is keyed on `(date, attendee)` so a person can attend only one event per day.
 - `coordination`: `Source` notes (which sources are good or poor) and `Run` logs for every cycle and stage.
 
 An always-alive `EventScoutWorkflow` entity wakes on a cadence or on demand and runs one cycle: open a `Run` on the board, run Discovery as a child workflow, read the unprocessed queue with one structured read, run one `ProcessEventWorkflow` child per event with bounded parallelism, close the `Run`, and continue as new so its history stays small. Signals: `run_now`, `instruct <text>` (queued into the next Discovery brief), `pause`, `resume`, `stop`. Query: `status`.
@@ -175,6 +175,7 @@ OPENAI_MODEL=gpt-5.4-mini uv run pytest -m live
 - Do not run the worker with `async with Worker(...)`. With a plugin that closes an HTTP client in its run context, the SDK cancels the worker's run task while that close is still in flight and then cancels the caller. `worker.py` and the test harness start `worker.run()` in a task, await `worker.shutdown()`, then await the run task.
 - The entity initialises its state in an `@workflow.init` constructor, because Temporal runs signal handlers that arrive with the first workflow task before `run` starts.
 - The `xmemory-temporal` plugin registers fixed activity names, so one worker can bind it to one instance. The coordination instance uses the small `board_read` / `board_write` activities in `memory/board_activities.py` instead.
+- The processing status has no schema default on purpose. In xmemory a field default is filled by the extractor on every write, so a default of `unprocessed` was re-applied whenever a processed event was mentioned again (a re-discovery, an attendance note) and reset it. With no default, a mention that does not state a status leaves the stored value alone, and the queue read treats an empty status as "waiting".
 
 ## Layout
 

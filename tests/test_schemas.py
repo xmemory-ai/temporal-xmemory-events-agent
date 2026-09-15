@@ -25,7 +25,8 @@ def test_events_schema_event_identity_and_processing_state() -> None:
     assert event["primary_key"] == ["name"]
     status = event["fields"]["processing_status"]
     assert status["enum"] == ["unprocessed", "processed", "failed"]
-    assert status["default"] == "unprocessed"
+    # No default on purpose: the extractor re-applies a default on every mention, resetting processed events.
+    assert "default" not in status
     for field in ("start_date", "end_date", "cfp_deadline"):
         assert "ISO 8601" in event["fields"][field]["description"]
 

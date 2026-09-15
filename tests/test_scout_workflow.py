@@ -51,7 +51,7 @@ async def test_cycle_discovers_then_processes_and_continues(
             tool_call("board_recall", question="What did recent runs do?"),
             tool_call(
                 "events_remember",
-                text=f"Event {name}, website {website}, discovered on 2026-09-15T10:00:00Z, discovery note: from the test feed, processing status unprocessed.",
+                text=f"Event {name}, website {website}, discovered on 2026-09-15T10:00:00Z, discovery note: from the test feed.",
             ),
             tool_call(
                 "board_remember",

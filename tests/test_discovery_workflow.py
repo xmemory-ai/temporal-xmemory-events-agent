@@ -29,12 +29,11 @@ async def test_discovery_writes_a_new_event_and_a_run_line(
         [
             tool_call("board_recall", question="What did recent runs do and which sources are good?"),
             tool_call("fetch_url", url="https://example.test/feed", offset=0),
-            tool_call("events_recall", question=f"Is {name} already known?"),
             tool_call(
                 "events_remember",
                 text=(
                     f"Event {name}, website {website}, discovered on 2026-09-15T10:00:00Z, "
-                    f"discovery note: found in the test feed, processing status unprocessed."
+                    f"discovery note: found in the test feed."
                 ),
             ),
             tool_call(
@@ -73,9 +72,10 @@ async def test_discovery_writes_a_new_event_and_a_run_line(
     assert "- ExampleConf 2027" in seen  # the fetched feed reached the model
     assert "stored in the events memory" in seen
 
+    # The write never mentioned a status: the schema default put the new event in the queue.
     queue = event_rows(await admin.read_rows(memory_targets.events, UNPROCESSED_EVENTS))
     mine = [r for r in queue if r.name == name]
-    assert len(mine) == 1 and mine[0].website == website
+    assert len(mine) == 1 and mine[0].website == website and mine[0].processing_status in ("", "unprocessed")
     runs = parse_objects(
         await admin.read_rows(memory_targets.coordination, "Every Run record. Return all rows with every field.")
     )
